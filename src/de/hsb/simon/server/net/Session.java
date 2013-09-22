@@ -6,15 +6,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
-import valueobjects.Person;
-import valueobjects.Rechnung;
-import valueobjects.Ware;
-import valueobjects.WarenLog;
+import valueobjects.*;
 import de.hsb.simon.commons.ClientInterface;
 import de.hsb.simon.commons.SessionInterface;
 import de.root1.simon.annotation.SimonRemote;
-import domain.LagerVerwaltung;
+import domain.*;
 import exceptions.BestellteMengeNegativException;
+import exceptions.NichtVielfachesVonPackGroesseException;
 import exceptions.PersonExistiertBereitsException;
 import exceptions.PersonExistiertNichtException;
 import exceptions.WareExistiertBereitsException;
@@ -43,6 +41,7 @@ public class Session implements SessionInterface{
 		return this.client;
 	}
 	
+	@Override
 	public List<Ware> gibAlleWaren(){
 		return this.lag.gibAlleWaren();
 	}
@@ -51,15 +50,25 @@ public class Session implements SessionInterface{
 	public List<Person> gibAllePersonen() {
 		return this.lag.gibAllePersonen();
 	}
+	
+	@Override
+	public HashMap<String,Ware> getMeineWarenVerwaltung() {
+		return this.lag.getMeineWarenVerwaltung();
+	}
 
+	@Override
+	public HashMap<String,Person> getMeinePersonenVerwaltung() {
+		return this.lag.getMeinePersonenVerwaltung();
+	}
+	
 	@Override
 	public List<Ware> sucheNachBezeichnung(String bezeichnung) {
 		return lag.sucheNachBezeichnung(bezeichnung);
 	}
 
 	@Override
-	public void fuegeWareEin(String bezeichnung, int nummer, int bestand, float preis) throws WareExistiertBereitsException {
-		this.lag.fuegeWareEin(bezeichnung, nummer, bestand, preis);
+	public void fuegeWareEin(String bezeichnung, int nummer, int bestand, float preis, int packungsGroesse) throws WareExistiertBereitsException {
+		this.lag.fuegeWareEin(bezeichnung, nummer, bestand, preis,packungsGroesse);
 		List<Ware> aktualisierteDaten = this.lag.gibAlleWaren();
 		this.server.broadcastAktualisierteWarenDaten(aktualisierteDaten);
 		//SYNCHRONIZED
@@ -127,7 +136,7 @@ public class Session implements SessionInterface{
 	}
 
 	@Override
-	public void inWarenKorbLegen(int menge, Ware ware, Person p)throws BestellteMengeNegativException {
+	public void inWarenKorbLegen(int menge, Ware ware, Person p)throws BestellteMengeNegativException, NichtVielfachesVonPackGroesseException {
 		this.lag.inWarenKorbLegen(menge, ware, p);
 		
 	}
@@ -151,14 +160,7 @@ public class Session implements SessionInterface{
 	}
 
 	
-	public HashMap<String,Person> getMeinePersonenVerwaltung() {
-		return this.lag.getPersonenObjekte();
-	}
 
-	
-	public HashMap<String,Ware> getMeineWarenVerwaltung() {
-		return this.lag.getWarenObjekte();
-	}
 
 	@Override
 	public Rechnung getRechnung() {

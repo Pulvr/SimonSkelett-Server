@@ -132,7 +132,7 @@ public class WarenVerwaltung {
 	 * @param neuerBestand der Neue Bestand dieser Ware
 	 * @throws WareExistiertNichtException
 	 */
-	public void aendereBestand(Ware w, int neuerBestand)throws WareExistiertNichtException, IOException{
+	public synchronized void aendereBestand(Ware w, int neuerBestand)throws WareExistiertNichtException, IOException{
 		if(warenBestand.contains(w)){
 			w.setBestand(neuerBestand);
 		}

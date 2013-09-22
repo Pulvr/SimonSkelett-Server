@@ -61,14 +61,13 @@ public class ServerInterfaceImpl implements ServerInterface {
 	  * @return SessionInterface - die session
 	  */
 	 public SessionInterface login (String user, ClientInterface client){
+			 
+			 Session session = new Session(user, client, this);
 		 
-		Session session = new Session(user, client, this);
+			 sessions.add(session);
 		 
-		sessions.add(session);
-		 
-		return session;
-	
-	 }
+			 return session;
+	 } 
 	 
 	 public LagerVerwaltung getLagerVerwaltung(){
 		 return this.lag;

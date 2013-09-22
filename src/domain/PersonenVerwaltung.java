@@ -10,11 +10,12 @@ import persistence.FilePersistenceManager;
 import valueobjects.Person;
 import valueobjects.Ware;
 import exceptions.BestellteMengeNegativException;
+import exceptions.NichtVielfachesVonPackGroesseException;
 import exceptions.PersonExistiertBereitsException;
 import exceptions.PersonExistiertNichtException;
 
 /**
- * Klasse zur Verwaltung von Personen (noch ohne Mitarbeiter und Kunden).
+ * Klasse zur Verwaltung von Personen .
  * 
  * 
  */
@@ -58,9 +59,10 @@ public class PersonenVerwaltung {
 			} while (einePerson != null);
 		}catch (ClassNotFoundException e){
 			System.out.println(e.getMessage());
-		}
+		}finally{
 		// Persistenz-Schnittstelle wieder schließen
 		pm.close();
+		}
 	}
 	/**
 	 * Methode zum einfügen von Personen
@@ -137,8 +139,10 @@ public class PersonenVerwaltung {
 	 * @param p welche Person?
 	 * @throws BestellteMengeNegativException
 	 */
-	public void inWarenkorbLegen(int menge, Ware ware, Person p) throws BestellteMengeNegativException{
-		if((menge > 0) && (ware.getBestand() >= menge)){
+	public void inWarenkorbLegen(int menge, Ware ware, Person p) throws BestellteMengeNegativException, NichtVielfachesVonPackGroesseException {
+	    if (!ware.checkBestellmengeGueltig(menge)) {
+	        throw new NichtVielfachesVonPackGroesseException();
+	    } else if ((menge > 0) && (ware.getBestand() >= menge)) {
 			p.inWarenKorbLegen(ware, menge);
 		} else if (menge < 0) {
 			throw new BestellteMengeNegativException();

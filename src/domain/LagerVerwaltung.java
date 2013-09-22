@@ -1,18 +1,19 @@
 package domain;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
+import valueobjects.MassengutWare;
 import valueobjects.Person;
 import valueobjects.Rechnung;
 import valueobjects.Ware;
 import valueobjects.WarenLog;
 import domain.WarenVerwaltung.Sortierung;
 import exceptions.BestellteMengeNegativException;
+import exceptions.NichtVielfachesVonPackGroesseException;
 import exceptions.PersonExistiertBereitsException;
 import exceptions.PersonExistiertNichtException;
 import exceptions.WareExistiertBereitsException;
@@ -20,8 +21,8 @@ import exceptions.WareExistiertNichtException;
 
 /**
  * Klasse zur Verwaltung eines (sehr einfachen) Lagers.
- * Bietet Methoden zum Zurï¿½ckgeben aller Waren im Bestand, 
- * zur Suche nach Waren, zum Einfï¿½gen neuer Waren 
+ * Bietet Methoden zum Zurüückgeben aller Waren im Bestand, 
+ * zur Suche nach Waren, zum Einfügen neuer Waren 
  * und zum Speichern des Bestands.
  * 
  * 
@@ -86,7 +87,7 @@ public class LagerVerwaltung {
 
 	/**
 	 * Methode zum Suchen von Waren anhand der Bezeichnung. Es wird eine Liste von Waren
-	 * zurï¿½ckgegeben, die alle Waren mit exakt ï¿½bereinstimmender Bezeichnung enthï¿½lt.
+	 * zurückgegeben, die alle Waren mit exakt übereinstimmender Bezeichnung enthält.
 	 * 
 	 * @param bezeichnung Bezeichnung der gesuchten Ware
 	 * @return Liste der gefundenen Waren (evtl. leer)
@@ -97,20 +98,25 @@ public class LagerVerwaltung {
 	}
 
 	/**
-	 * Methode zum Einfï¿½gen einer neuen Ware in den Bestand. 
-	 * Wenn die Ware bereits im Bestand ist, wird der Bestand nicht geï¿½ndert.
+	 * Methode zum Einfügen einer neuen Ware in den Bestand. 
+	 * Wenn die Ware bereits im Bestand ist, wird der Bestand nicht geändert.
 	 * 
 	 * @param bezeichnung Bezeichnung des Ware
 	 * @param nummer Nummer der Waren
 	 * @throws WareExistiertBereitsException wenn die Ware bereits existiert
 	 */
-	public void fuegeWareEin(String bezeichnung, int nummer, int bestand, float preis) throws WareExistiertBereitsException {
-		Ware w = new Ware(bezeichnung, nummer,  bestand, preis);
-		meineWaren.wareEinfuegen(w);
-	}
+	public void fuegeWareEin(String bezeichnung, int nummer, int bestand, float preis, int packungsGroesse) throws WareExistiertBereitsException {
+        Ware w = null;
+        if (packungsGroesse > 1) {
+            w = new MassengutWare(bezeichnung, nummer,  bestand, preis, packungsGroesse);
+        } else {
+            w = new Ware(bezeichnung, nummer,  bestand, preis);
+        }
+        meineWaren.wareEinfuegen(w);
+    }
 	
 	/**
-	 * Methode zum lï¿½schen von Waren aus dem Bestand
+	 * Methode zum löchen von Waren aus dem Bestand
 	 * @param eineWare
 	 * @throws WareExistiertNichtException
 	 */
@@ -124,15 +130,15 @@ public class LagerVerwaltung {
 	 * @param neuerBestand
 	 * @throws WareExistiertNichtException
 	 */
-	public void aendereBestand(Ware w,int neuerBestand)throws WareExistiertNichtException, IOException{
+	public synchronized void aendereBestand(Ware w,int neuerBestand)throws WareExistiertNichtException, IOException{
 		meineWaren.aendereBestand(w, neuerBestand);
 	}
 	
 	/**
-	 * Methode zum EinfÃ¼gen einer Person in eine Liste
+	 * Methode zum Einfügen einer Person in eine Liste
 	 * 
 	 *
-	 * @throws PersonExistiertBereitsException wenn die Ware bereits existiert wird aber noch nicht verwendet
+	 * @throws PersonExistiertBereitsException wenn die Person bereits existiert
 	 */
 	public void fuegePersonEin(int nr, String name, String anr, String strasse, String plz, String ort ,String email, String usr, String pw, boolean ma) throws PersonExistiertBereitsException {
 		Person p = new Person(nr,name,anr,strasse,plz,ort , email, usr, pw, ma);
@@ -140,7 +146,7 @@ public class LagerVerwaltung {
 	}
 	
 	/**
-	 * Methode zum lï¿½schen einer Person
+	 * Methode zum löschen einer Person
 	 * 
 	 * @param einePerson
 	 * @throws PersonExistiertNichtException
@@ -199,8 +205,9 @@ public class LagerVerwaltung {
 	 * @param ware welche Ware?
 	 * @param p welche Person?
 	 * @throws BestellteMengeNegativException
+	 * @throws NichtVielfachesVonPackGroesseException 
 	 */
-	public void inWarenKorbLegen(int menge, Ware ware, Person p) throws BestellteMengeNegativException{
+	public void inWarenKorbLegen(int menge, Ware ware, Person p) throws BestellteMengeNegativException, NichtVielfachesVonPackGroesseException{
 		meinePersonen.inWarenkorbLegen(menge, ware, p);
 	}
 	
@@ -225,9 +232,9 @@ public class LagerVerwaltung {
 	}
 	
 	/**
-	 * Gibt den Warenlog fï¿½r eine Ware zurï¿½ck mit einer Angabe wie weit der Log zurï¿½ck liegen soll
-	 * @param bezeichnung Log fï¿½r welche Ware?
-	 * @param daysInPast wieviele Tage soll der Log zurï¿½ck liegen
+	 * Gibt den Warenlog für eine Ware zurück mit einer Angabe wie weit der Log zurück liegen soll
+	 * @param bezeichnung Log für welche Ware?
+	 * @param daysInPast wieviele Tage soll der Log zurück liegen
 	 * @return den WarenLog
 	 * @throws IOException
 	 * @throws ParseException
@@ -240,16 +247,16 @@ public class LagerVerwaltung {
 	 * Gibt die PersonenVerwaltung zurück
 	 * @return
 	 */
-	public PersonenVerwaltung getMeinePersonenVerwaltung(){
-		return this.meinePersonen;
+	public HashMap<String,Person> getMeinePersonenVerwaltung(){
+		return meinePersonen.getPersonenObjekte();
 	}
 	
 	/**
 	 * Gibt die WarenVerwaltung zurück
 	 * @return
 	 */
-	public WarenVerwaltung getMeineWarenVerwaltung(){
-		return this.meineWaren;
+	public HashMap<String,Ware> getMeineWarenVerwaltung(){
+		return meineWaren.getWarenObjekte();
 	}
 	
 	/**
