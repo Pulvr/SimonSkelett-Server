@@ -3,6 +3,7 @@ package de.hsb.simon.server.net;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 import valueobjects.Person;
 import valueobjects.Ware;
@@ -82,7 +83,6 @@ public class ServerInterfaceImpl implements ServerInterface {
 		for(int i=0;i< sessions.size();i++){
 			this.sessions.get(i).getClient().erhalteAktualisiertePersonenDaten(aktualisierteDaten);
 		}
-		
 	}
 
 	@Override
@@ -90,8 +90,9 @@ public class ServerInterfaceImpl implements ServerInterface {
 		for(int i=0;i<sessions.size();i++){
 			this.sessions.get(i).getClient().erhalteAktualisierteWarenDaten(aktualisierteDaten);
 		}
-		
 	}
 	 
-	
+	public void broadcastAktualisierteWarenkorbDaten(Vector<Ware> aktualisierteDaten, ClientInterface client){
+		client.erhalteAktualisierteWarenkorbDaten(aktualisierteDaten);
+	}
 }

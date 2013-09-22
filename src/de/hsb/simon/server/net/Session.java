@@ -138,6 +138,7 @@ public class Session implements SessionInterface{
 	@Override
 	public void inWarenKorbLegen(int menge, Ware ware, Person p)throws BestellteMengeNegativException, NichtVielfachesVonPackGroesseException {
 		this.lag.inWarenKorbLegen(menge, ware, p);
+		this.server.broadcastAktualisierteWarenkorbDaten(this.lag.getPersonenObjekte().get(p.getUsername()).getWarenkorb(), this.getClient());
 		
 	}
 
@@ -158,9 +159,6 @@ public class Session implements SessionInterface{
 	public Vector<WarenLog> getWarenLog(String bezeichnung, int daysInPast)throws IOException, ParseException {
 		return this.lag.getWarenLog(bezeichnung, daysInPast);
 	}
-
-	
-
 
 	@Override
 	public Rechnung getRechnung() {
