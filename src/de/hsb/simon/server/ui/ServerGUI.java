@@ -3,6 +3,9 @@ package de.hsb.simon.server.ui;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.IOException;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -11,6 +14,7 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import de.hsb.simon.server.net.ServerInterfaceImpl;
+import de.root1.simon.exceptions.NameBindingException;
 
 public class ServerGUI extends JFrame {
 
@@ -50,6 +54,7 @@ public class ServerGUI extends JFrame {
 		this.setSize(300, 100);
 		this.setLayout(new GridLayout(1, 3));
 		
+		
 		// Komponenten initialisieren
 		status = new JLabel("Status: stopped");
 		start = new JButton("Start");
@@ -69,7 +74,12 @@ public class ServerGUI extends JFrame {
 		start.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent ae) {
-				// TODO
+				try{	
+					connection.startServer();
+					status.setText("Status: started");
+				}catch(IOException|NameBindingException e){
+					e.printStackTrace();
+				}
 			}
 		});
 		
@@ -77,7 +87,21 @@ public class ServerGUI extends JFrame {
 		stop.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO
+				connection.stopServer();
+				status.setText("Status: stopped");
+			}
+		});
+		
+		this.addWindowListener(new WindowAdapter(){
+			public void windowClosing(WindowEvent we){
+				//wenn die server gui sofort beendet wird führt das stoppen zur NullpointerException
+				//Darum wird hier geschaut ob der Status des Labes umgestellt wurde oder nicht
+				if(connection.getRunning()==true){
+					connection.stopServer();
+					System.exit(0);
+				}else{
+				System.exit(0);
+				}
 			}
 		});
 	}
